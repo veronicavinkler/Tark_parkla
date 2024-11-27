@@ -1,0 +1,136 @@
+#:kivy 2.3.0
+
+<My>:
+    canvas:
+        Color:
+            rgba: 0.4, 0.5, 0.65, 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+    Carousel:
+        size: root.width, root.height  
+        GridLayout:
+            cols: 4
+            rows: 1
+            Image:
+                source: r'C:\Users\veron\Desktop\Ajaplaneerimine\Tarkparkla\mini.jpg' 
+                fit_mode:"fill"
+                size_hint_x: 2
+            Image:
+                source: r'C:\Users\veron\Desktop\Ajaplaneerimine\Tarkparkla\logi_taust.jpg'
+                fit_mode:"fill"
+                size_hint_x: 1
+
+    GridLayout:
+        cols: 2
+        size: root.width, root.height
+        Image:
+            source: r'C:\Users\veron\Desktop\Ajaplaneerimine\Tarkparkla\logo.jpg'
+            allow_stretch: True
+            size_hint_x: 2
+        Label:
+            text: "LOGI"
+            color: 0.2, 0.2, 0.4, 0.8
+            size_hint_x: 1
+            font_size: '25sp'
+
+        GridLayout:
+            cols: 3
+            pos: 100, 100
+            Image:
+                source: r'C:\Users\veron\Desktop\Ajaplaneerimine\Tarkparkla\black_car.jpg'
+                allow_stretch: True
+            Image:
+                source: r'C:\Users\veron\Desktop\Ajaplaneerimine\Tarkparkla\black_car.jpg'
+                allow_stretch: True
+            Image:
+                source: r'C:\Users\veron\Desktop\Ajaplaneerimine\Tarkparkla\black_car.jpg'
+                allow_stretch: True
+
+            Label:
+                text: "Parkimise koht 1"
+                color: 0.2, 0.2, 0.4, 0.8
+            Label:
+                text: "Parkimise koht 2"
+                color: 0.2, 0.2, 0.4, 0.8
+            Label:
+                text: "Parkimise koht 3"
+                color: 0.2, 0.2, 0.4, 0.8
+
+            Label:
+                text: "Status: Waiting..."
+                color: 0.2, 0.2, 0.4, 0.8
+            Label:
+                text: "Status: Waiting..."
+                color: 0.2, 0.2, 0.4, 0.8
+            Label:
+                text: "Status: Waiting..."
+                color: 0.2, 0.2, 0.4, 0.8
+            
+            GridLayout:
+                cols: 2
+                pos: 30, 145
+                Image:
+                    source: r'C:\Users\veron\Desktop\Ajaplaneerimine\Tarkparkla\green_default_button.jpg'
+                    allow_stretch: True
+                Label:
+                    text: "Sund vabasta"
+                    color: 0.2, 0.2, 0.4, 0.8
+                Image:
+                    source: r'C:\Users\veron\Desktop\Ajaplaneerimine\Tarkparkla\red_default_button.jpg'
+                    allow_stretch: True
+                Label:
+                    text: "Broneeri koht"
+                    color: 0.2, 0.2, 0.4, 0.8
+                Image:
+                    source: r'C:\Users\veron\Desktop\Ajaplaneerimine\Tarkparkla\yellow_default_button.jpg'
+                    allow_stretch: True
+                Label:
+                    text: "Viga tekkinud"
+                    color: 0.2, 0.2, 0.4, 0.8
+
+            GridLayout:
+                cols: 2
+                pos: 30, 145
+                Image:
+                    source: r'C:\Users\veron\Desktop\Ajaplaneerimine\Tarkparkla\green_default_button.jpg'
+                    allow_stretch: True
+                Label:
+                    text: "Vabasta koht"
+                    color: 0.2, 0.2, 0.4, 0.8
+                Image:
+                    source: r'C:\Users\veron\Desktop\Ajaplaneerimine\Tarkparkla\red_default_button.jpg'
+                    allow_stretch: True
+                Label:
+                    text: "Broneeri koht"
+                    color: 0.2, 0.2, 0.4, 0.8
+                Image:
+                    source: r'C:\Users\veron\Desktop\Ajaplaneerimine\Tarkparkla\yellow_default_button.jpg'
+                    allow_stretch: True
+                Label:
+                    text: "Viga tekkinud"
+                    color: 0.2, 0.2, 0.4, 0.8
+            
+            GridLayout:
+                cols: 2
+                pos: 30, 145
+                Image:
+                    source: r'C:\Users\veron\Desktop\Ajaplaneerimine\Tarkparkla\green_default_button.jpg'
+                    allow_stretch: True
+                Label:
+                    text: "Vabasta koht"
+                    color: 0.2, 0.2, 0.4, 0.8
+                Image:
+                    source: r'C:\Users\veron\Desktop\Ajaplaneerimine\Tarkparkla\red_default_button.jpg'
+                    allow_stretch: True
+                Label:
+                    text: "Broneeri koht"
+                    color: 0.2, 0.2, 0.4, 0.8
+                Image:
+                    source: r'C:\Users\veron\Desktop\Ajaplaneerimine\Tarkparkla\yellow_default_button.jpg'
+                    allow_stretch: True
+                Label:
+                    text: "Viga tekkinud"
+                    color: 0.2, 0.2, 0.4, 0.8
+
