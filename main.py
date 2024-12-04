@@ -12,6 +12,7 @@ from kivy.graphics import *
 #https://www.tutorialspoint.com/kivy/kivy-images.htm
 #https://kivy.org/doc/stable/api-kivy.uix.label.html
 #https://kivy.org/doc/stable/api-kivy.core.text.html
+#https://kivy.org/doc/stable-2.2.0/api-kivy.uix.button.html
 
 
 class My(Widget):
