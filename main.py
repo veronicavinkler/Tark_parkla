@@ -8,6 +8,8 @@
 #https://kivy.org/doc/stable/api-kivy.core.text.html
 #https://kivy.org/doc/stable-2.2.0/api-kivy.uix.button.html
 
+#https://www.geeksforgeeks.org/access-modifiers-in-python-public-private-and-protected/
+
 
 from kivy.config import Config
 Config.set('graphics', 'width', '1280')
