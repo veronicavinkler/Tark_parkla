@@ -43,7 +43,9 @@ class ParklaApp(App):
     ECHO = [21, 20, 16]
     speed_of_sound = 343.0 #because we don't know that
 
-    def build(self):        
+    def __init__(self, **kwargs):        
+        super().__init__(**kwargs)
+        self.running=True
         self.Initializing()
         self.flo = FloatLayout() #Siia hakkame lisama widgetit
 
@@ -95,70 +97,57 @@ class ParklaApp(App):
             )
             self.flo.add_widget(parking_lot)
             self.PL.append(parking_lot)
-
         #Ulesannete kaiviamine
-        t1 = threading.Thread(target=self.mp, args=(1, TRIG[0], ECHO[0]))
-        t2 = threading.Thread(target=self.mp, args=(2, TRIG[1], ECHO[1]))
-        t3 = threading.Thread(target=self.mp, args=(3, TRIG[2], ECHO[2]))
-        
-        t1.start()
-        time.sleep(1)
-        t2.start()
-        time.sleep(2)
-        t3.start()
-        time.sleep(3)
-        
-        self.add_free(self)
-        return self.flo
-    
-    def Initializing(self, ledred, ledgreen, TRIG, ECHO):
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(ledred, GPIO.OUT)
-        GPIO.setup(ledgreen, GPIO.OUT)
-        GPIO.setup(TRIG, GPIO.OUT)
-        GPIO.setup(ECHO, GPIO.IN)
-    
-    def add_free_and_error (self, trig, echo): #Tagastab
         for i in range(3):
-            d = distance(i, trig[i-1], echo[i-1])
-            stat = status(d)
-            if stat == "voetud":
-                parking_spaces[i-1]=True
-            elif stat == "viga" or "wtf":
-                error_spaces[i-1]=True
-   
-    def sum_free_and_error(self, parking_spaces, error_spaces, free_num, error_num):
-        free_num = parking_spaces.count(False)
-        error_num = error_spaces.count(True)
-            
-    def distance (self, space_num, trig, echo):
+            threading.Thread(target=self.monitor_parking_space, args=(i,)).start()
+        return self.flo
+
+    def on_stop(self):
+        self.running=False
+        GPIO.cleanup()
+    
+    def monitor_parking_space(self, space_num):
+        while self.running: #Kui kood jookseb
+            dist = self.distance(space_num, self.TRIG, self.ECHO)
+            status = self.status(dist)
+            self.update_space(space_num, status)
+            time.sleep(1) #Jalgitakse iga sekund
+    
+    def update_space(self, space_num, status):
+        self.add_free_and_error()
+        self.sum_free_and_error()
+        self.add_to_led(space_num, status)
+        self.add_to_app(space_num, status)
+        self.add_to_screen()
+        
+    def Initializing(self):
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(self.ledred, GPIO.OUT)
+        GPIO.setup(self.ledgreen, GPIO.OUT)
+        GPIO.setup(self.TRIG, GPIO.OUT)
+        GPIO.setup(self.ECHO, GPIO.IN)
+        
+    def distance (self, space_num):
         #KAUGUSE MOOTMINE
-        GPIO.output(trig, False)
+        GPIO.output(self.TRIG[space_num], False)
         time.sleep(0.1)
-        string = f"waiting {self.space_num} response... \n"
+        string = f"waiting {space_num} response... \n"
         self.add_to_log(string) #lisame logisse
             
-        GPIO.output(trig, True)
+        GPIO.output(self.TRIG[space_num], True)
         time.sleep(0.00001)
-        GPIO.output(trig, False)
+        GPIO.output(self.TRIG[space_num], False)
 
-        while GPIO.input(echo)==0:
+        while GPIO.input(self.ECHO[space_num])==0:
             pulse_start=time.time()
-        while GPIO.input(echo)==1:
+        while GPIO.input(self.ECHO[space_num])==1:
             pulse_end=time.time()
-            
         #MOOTMISTE ARVUTAMINE
         pulse_duration = pulse_end-pulse_start
-        distance=(pulse_duration*speed_of_sound)/2
+        distance=(pulse_duration*self.speed_of_sound)/2
         distance = round(distance*100)/2
-            
-        string = f"Ootan vastust parkimise kohalt {space_num}"
-        self.add_to_log(string)
-            
-        status = self.p_checking(distance)
-        add_to_led(space_num, status, ledred, ledgreen)
-        time.sleep(2)
-
+        return distance
+    
     def status(self, distance):
         if distance < 0 or distance >25:
             return "viga"
@@ -166,56 +155,77 @@ class ParklaApp(App):
             return "voetud"
         elif distance < 25:
             return "vaba"
-        return "wtf"
+        return "wtf"   
         
-    def add_to_led(self, space_num, status, ledred, ledgreen):
+    def add_free_and_error (self): #Tagastab
+        for i in range(3):
+            dist = self.distance(i)
+            stat = self.status(dist)
+            if stat == "voetud":
+                self.parking_spaces[i]=True
+            elif stat == ["viga","wtf"]:
+                self.error_spaces[i]=True
+            else:
+                self.parking_spaces[i]=False
+                self.error_spaces[i]=False
+   
+    def sum_free_and_error(self):
+        self.free_num = self.parking_spaces.count(False)
+        self.error_num = self.error_spaces.count(True)
+        
+    def add_to_led(self, space_num, status):
         if status == "viga":
             for i in range(5):
-                GPIO.output(ledred[space_num-1], True)
-                GPIO.output(ledgreen[space_num-1], True)
+                GPIO.output(self.ledred[space_num], True)
+                GPIO.output(self.ledgreen[space_num], True)
                 time.sleep(0.5)
-                GPIO.output(ledred[space_num-1], False)
-                GPIO.output(ledgreen[space_num-1], False)
+                GPIO.output(self.ledred[space_num], False)
+                GPIO.output(self.ledgreen[space_num], False)
                 time.sleep(0.5)
                 i +=1
-        elif status == "voetud":
-            GPIO.output(ledred[space_num-1], True) #LED
-            GPIO.output(ledgreen[space_num-1], False) #LED
-        elif status == "vaba":
-            GPIO.output(ledred[space_num-1], False)
-            GPIO.output(ledgreen[space_num-1], True)
+        elif status == "voetud": #led punane
+            GPIO.output(self.ledred[space_num], True) #LED
+            GPIO.output(self.ledgreen[space_num], False) #LED
+        elif status == "vaba":#LED roheline pannakse polema
+            GPIO.output(self.ledred[space_num], False)
+            GPIO.output(self.ledgreen[space_num], True)
         else:
-            for i in range(5):
-                GPIO.output(ledred[space_num-1], True)
-                GPIO.output(ledgreen[space_num-1], True)
+            for i in range(5): #Kaivitame blinkimise
+                GPIO.output(self.ledred[space_num], True)
+                GPIO.output(self.ledgreen[space_num], True)
                 time.sleep(0.5)
-                GPIO.output(ledred[space_num-1], False)
-                GPIO.output(ledgreen[space_num-1], False)
+                GPIO.output(self.ledred[space_num], False)
+                GPIO.output(self.ledgreen[space_num], False)
                 time.sleep(0.5)
                 i +=1
-    def add_to_screen(self)
-    def ubuntu(self, space_num, status, distance, ledred, ledgreen, Parking_spaces):
+    
+    def add_to_screen(self): #Lisame teavituse I2C ekraanile
+        string = f"{self.free_num} spaces is free"
+        mylcd = I2C_LCD_driver.lcd()
+        mylcd.lcd_display_string(string, 1)
+        string = f"{self.free_num} spaces has error"
+        mylcd.lcd_display_string(string, 2)
+        
+    def add_to_app(self, space_num, status):
         if status == "viga":
-            string = f"Parkimise kohal {space_num} in VIGA"
-            self.PL[space_num].source = 'C:/Users/veron/Ajaplaneerimine/blackcar.png' #APP Pilt
-            for i in range(5): #VEA EFFEKTI GENEREERIMINE LED
-            self.Parking_spaces[space_num-1] = True #Parkimise koha seisund
+            string = f"Parkimise kohal {space_num} in VIGA" #STRING LOG jaoks
+            self.PL[space_num-1].source = 'C:/Users/veron/Ajaplaneerimine/blackcar.png' #APP Pilt
         elif status == "voetud":
             string = f"Parkimise koht {space_num+1} on võetud" #STRING LOG jaoks
-            #PILDIVAHETAMINE VASTAVALTSEISUNDILE
-            self.PL[space_num].source = 'C:/Users/veron/Ajaplaneerimine/redcar.png' #APP Pilt
-            self.Parking_spaces[space_num-1] = False #Parkimise koha seisund
+            self.PL[space_num-1].source = 'C:/Users/veron/Ajaplaneerimine/redcar.png' #APP Pilt
         elif status == "vaba":
             string = f"Parkimise koht {space_num} on vaba" #STRING LOG jaoks
             self.PL[space_num-1].source = 'C:/Users/veron/Ajaplaneerimine/greencar.png' #APP Pilt
-            self.Parking_spaces[space_num-1] = True #Parkimise koha seisund
         else:
             string = "Wtf"
-        self.add_to_log(string) #SONUMI LISAMINE LOGI
+        self.add_to_log(string) #Kasutaame funktsiooni, et lisadateavituse
 
     def add_to_log(self, message):
         string = f"[b][color=#6E4B34]{message}[/color][/b]" #lisame teksti boldi ja värvime pruuniks
-        self.log_messages.append(string)
+        self.log_messages.append(string) #lisame teavituse build meetodisse olevasse listi
+        Clock.schedule_once(lambda dt: self.update_log_label(string))
+
+    def update_log_label(self, string):
         self.log_label.text += string + "\n" #lisame rea
         self.log_label.markup = True #enabling markup label-jaoks
 
