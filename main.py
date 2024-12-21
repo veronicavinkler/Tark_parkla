@@ -56,20 +56,12 @@ import I2C_LCD_driver
 
 class ParklaApp(App):
     #DEFINING
-    ps = [False, False, False]
+    parking_spaces = [False, False, False]
     ledred = [5, 22, 27]
     ledgreen = [26, 19, 13]
     TRIG = [24, 23, 18]
     ECHO = [21, 20, 16]
     speed_of_sound = 343.0 #because we don't know that
-    
-    def Initializing(self, ledred, ledgreen, TRIG, ECHO):
-        #SETUP
-        GPIO.setmode(GPIO.BMC)
-        GPIO.setup(ledred, GPIO.OUT)
-        GPIO.setup(ledgreen, GPIO.OUT)
-        GPIO.setup(TRIG, GPIO.OUT)
-        GPIO.setup(ECHO, GPIO.IN)
 
     def build(self):        
         Initializing()
@@ -109,7 +101,6 @@ class ParklaApp(App):
         self.flo.add_widget(log_scroll)
         
         #MINI SETUP
-        self.Parking_spaces = [False, False, False]
         self.Pilt = [
             'C:/Users/veron/Ajaplaneerimine/blackcar.png',
             'C:/Users/veron/Ajaplaneerimine/blackcar.png',
@@ -136,18 +127,27 @@ class ParklaApp(App):
         t2.start()
         t3.start()
         
-        Fps = 0 #vabad parkimise kohad
-        for i in range(3):
-            if ps == True:
-                Fps += 1
-            i += 1
-        
-        Fps_s = str(Fps) + " Parking spaces is free"
-        mylcd.lcd_display_string(Fps_s, 1)
-        GPIO.cleanup()        
-        self.add_to_log(Fps_s)#lisame logisse
-        
+        Is_free(self, parking_spaces)
         return self.flo
+    
+    def Initializing(self, ledred, ledgreen, TRIG, ECHO):
+        #SETUP
+        GPIO.setmode(GPIO.BMC)
+        GPIO.setup(ledred, GPIO.OUT)
+        GPIO.setup(ledgreen, GPIO.OUT)
+        GPIO.setup(TRIG, GPIO.OUT)
+        GPIO.setup(ECHO, GPIO.IN)
+    
+    def Is_free (self, parking_spaces)
+        free_spaces = 0 #vabad parkimise kohad
+        for i range(3):
+            if parking_spaces[i-1] == True:
+                free_spaces += 1
+            i += 1
+        string = free_spaces + " is free"
+        mylcd.lcd_display_string(string, 1)
+        string = free_spaces + " parking spacesin total is free"
+        self.add_to_log(string)
         
     def mp (self, space_num, trig, echo, ledred, ledgreen):
         while(True):
@@ -171,12 +171,11 @@ class ParklaApp(App):
             distance=(pulse_duration*speed_of_sound)/2
             distance = round(distance*100)/2
             
-            m = f"Ootan vastust parkimise kohalt {space_num}"
-            print(m) #vastus konsooli
-            self.add_to_log(m)
+            string = f"Ootan vastust parkimise kohalt {space_num}"
+            self.add_to_log(string)
             
             status = self.p_checking(distance)
-            Clock.schedule_once(lambda dt: self.ubuntu(space_num, status, distance, ledred[space_num-1], ledgreen[space_num-1]))
+            ubuntu(space_num, status, distance, ledred[space_num-1], ledgreen[space_num-1], parking_spaces[space_num-1])
             time.sleep(2)
 
     def p_checking(self, distance):
@@ -188,31 +187,34 @@ class ParklaApp(App):
             return "vaba"
         return "lol wtf"
 
-    def ubuntu(self, space_num, status, distance, ledred, ledgreen):
+    def ubuntu(self, space_num, status, distance, ledred, ledgreen, Parking_spaces):
         if status == "viga":
-            m = f"Parkimise kohal {space_num + 1} in VIGA"
+            string = f"Parkimise kohal {space_num} in VIGA"
+            #PILDI VAHETAMINEVASTAVALT SEISUNDILE
             self.PL[space_num].source = 'C:/Users/veron/Ajaplaneerimine/blackcar.png'
-            mylcd_display_string(f"Viga kohal{space_num + 1}")
-            for i in range(5):
+            mylcd_display_string(f"Viga kohal{space_num}")
+            for i in range(5): #VEA EFFEKTI GENEREERIMINE
                 GPIO.output(led_r, True)
                 GPIO.output(led_g, True)
                 i=i+1
+            self.Parking_spaces[space_num-1] = True
         elif status == "voetud":
-            m = f"Parkimise koht {space_num + 1} on võetud"
+            string = f"Parkimise koht {space_num+1} on võetud"
+            #PILDIVAHETAMINE VASTAVALTSEISUNDILE
             self.PL[space_num].source = 'C:/Users/veron/Ajaplaneerimine/redcar.png'
-            self.Parking_spaces[space_num] = False
+            self.Parking_spaces[space_num-1] = False
         elif status == "vaba":
-            m = f"Parkimise koht {space_num + 1} on vaba"
-            self.PL[space_num].source = 'C:/Users/veron/Ajaplaneerimine/greencar.png'
-            self.Parking_spaces[space_num] = True
+            string = f"Parkimise koht {space_num} on vaba"
+            self.PL[space_num-1].source = 'C:/Users/veron/Ajaplaneerimine/greencar.png'
+            self.Parking_spaces[space_num-1] = True
         else:
-            m= "Wtf"
-        self.add_to_log(m)
+            string = "Wtf"
+        self.add_to_log(string) #SONUMI LISAMINE LOGI
 
     def add_to_log(self, message):
-        fm = f"[b][color=#6E4B34]{message}[/color][/b]" #lisame teksti boldi ja värvime pruuniks
-        self.log_messages.append(fm)
-        self.log_label.text += fm + "\n" #lisame rea
+        string = f"[b][color=#6E4B34]{message}[/color][/b]" #lisame teksti boldi ja värvime pruuniks
+        self.log_messages.append(string)
+        self.log_label.text += string + "\n" #lisame rea
         self.log_label.markup = True #enabling markup label-jaoks
 
 if __name__ == '__main__': 
